@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель управления лидерами</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        body {
+            background: #1a1a1a;
+            min-height: 100vh;
+            padding: 20px;
+            color: #e0e0e0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #2d2d2d;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .header {
+            background: #1a1a1a;
+            padding: 20px;
+            border-bottom: 1px solid #404040;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: 600;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .table-container {
+            padding: 0;
+        }
+
+        .leaders-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leaders-table th {
+            background: #1a1a1a;
+            color: #ffffff;
+            padding: 15px 20px;
+            text-align: left;
+            font-weight: 500;
+            font-size: 14px;
+            border-bottom: 1px solid #404040;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+        }
+
+        .leaders-table td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #404040;
+            background: #2d2d2d;
+            color: #e0e0e0;
+        }
+
+        .leaders-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .info-cell {
+            background: #363636;
+            border: 1px solid #404040;
+            border-radius: 6px;
+            padding: 10px 15px;
+            margin: 2px 0;
+        }
+
+        .leader-name {
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 500;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+        }
+
+        .organization {
+            color: #ffffff;
+            font-size: 12px;
+            margin-top: 4px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+        }
+
+        .date-joined {
+            color: #ffffff;
+            font-size: 14px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+        }
+
+        .warnings {
+            text-align: left;
+        }
+
+        .warning-count {
+            background: #ffffff;
+            color: #000000;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+            min-width: 30px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .warning-count.low {
+            background: #ffffff;
+        }
+
+        .warning-count.medium {
+            background: #ffffff;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .edit-btn, .delete-btn {
+            background: linear-gradient(135deg, #ffffff, #e6e6e6);
+            color: #000000;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        .delete-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+        }
+
+        .edit-btn:hover {
+            background: linear-gradient(135deg, #e6e6e6, #ffffff);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+            transform: scale(1.05);
+        }
+
+        .delete-btn:hover {
+            background: linear-gradient(135deg, #ff5252, #ff7b7b);
+            box-shadow: 0 0 20px rgba(255, 82, 82, 0.6);
+            transform: scale(1.05);
+        }
+
+        .add-row {
+            background: linear-gradient(135deg, #ffffff, #e6e6e6);
+            color: #000000;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        .add-row:hover {
+            background: linear-gradient(135deg, #e6e6e6, #ffffff);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .add-row::before {
+            content: '+';
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #2d2d2d;
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid #404040;
+            min-width: 400px;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .modal h3 {
+            color: #ffffff;
+            margin-bottom: 20px;
+            font-size: 18px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #ffffff;
+            margin-bottom: 5px;
+            font-size: 14px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #404040;
+            border-radius: 6px;
+            background: #363636;
+            color: #ffffff;
+            font-size: 14px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ffffff, #e6e6e6);
+            color: #000000;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #e6e6e6, #ffffff);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #404040, #505050);
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #505050, #606060);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Управление лидерами</h1>
+        </div>
+
+        <div class="table-container">
+            <button class="add-row" onclick="openEditModal('')">Добавить строку</button>
+
+            <table class="leaders-table">
+                <thead>
+                    <tr>
+                        <th style="width: 35%">Лидер</th>
+                        <th style="width: 25%">Дата назначения</th>
+                        <th style="width: 20%">Выговоры</th>
+                        <th style="width: 20%">Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="leadersTableBody">
+                    <!-- Данные будут загружены из localStorage -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Редактирование данных лидера</h3>
+            <div class="form-group">
+                <label>Имя лидера:</label>
+                <input type="text" id="leaderName" value="">
+            </div>
+            <div class="form-group">
+                <label>Организация:</label>
+                <input type="text" id="leaderOrg" value="">
+            </div>
+            <div class="form-group">
+                <label>Дата назначения:</label>
+                <input type="date" id="leaderDate" value="">
+            </div>
+            <div class="form-group">
+                <label>Количество выговоров:</label>
+                <input type="number" id="leaderWarnings" value="0" min="0">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeEditModal()">Отмена</button>
+                <button class="btn btn-primary" onclick="saveLeaderData()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Ключ для хранения данных в localStorage
+        const STORAGE_KEY = 'leadersData';
+        
+        let currentEditingLeader = '';
+        let isNewLeader = false;
+        let leadersData = [];
+
+        // Загрузка данных из localStorage при загрузке страницы
+        function loadLeadersData() {
+            const storedData = localStorage.getItem(STORAGE_KEY);
+            if (storedData) {
+                leadersData = JSON.parse(storedData);
+            } else {
+                // Если данных нет, создаем начальные данные
+                leadersData = [
+                    {
+                        name: 'Great_Leader',
+                        organization: 'Ballas',
+                        date: '2024-10-15',
+                        warnings: 0
+                    },
+                    {
+                        name: 'Top_Leader',
+                        organization: 'Vagos',
+                        date: '2024-10-18',
+                        warnings: 2
+                    },
+                    {
+                        name: 'New_Leader',
+                        organization: 'LSPD',
+                        date: '2024-10-10',
+                        warnings: 3
+                    }
+                ];
+                saveLeadersToStorage();
+            }
+            
+            renderLeadersTable();
+        }
+
+        // Сохранение данных в localStorage
+        function saveLeadersToStorage() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(leadersData));
+        }
+
+        // Отрисовка таблицы с лидерами
+        function renderLeadersTable() {
+            const tableBody = document.getElementById('leadersTableBody');
+            tableBody.innerHTML = '';
+            
+            leadersData.forEach(leader => {
+                const row = document.createElement('tr');
+                
+                let warningClass = '';
+                if (leader.warnings == 0) {
+                    warningClass = 'low';
+                } else if (leader.warnings <= 2) {
+                    warningClass = 'medium';
+                }
+                
+                row.innerHTML = `
+                    <td>
+                        <div class="info-cell">
+                            <div class="leader-name">${leader.name}</div>
+                            <div class="organization">${leader.organization}</div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="info-cell">
+                            <div class="date-joined">${leader.date}</div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="info-cell">
+                            <span class="warning-count ${warningClass}">${leader.warnings}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="actions">
+                            <button class="edit-btn" onclick="openEditModal('${leader.name}')">✏️</button>
+                            <button class="delete-btn" onclick="deleteLeader('${leader.name}')">🗑️</button>
+                        </div>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        function openEditModal(leaderName) {
+            currentEditingLeader = leaderName;
+            isNewLeader = leaderName === '';
+            
+            const modalTitle = document.getElementById('modalTitle');
+            modalTitle.textContent = isNewLeader ? 'Добавление нового лидера' : 'Редактирование данных лидера';
+            
+            if (isNewLeader) {
+                document.getElementById('leaderName').value = '';
+                document.getElementById('leaderOrg').value = '';
+                document.getElementById('leaderDate').value = '';
+                document.getElementById('leaderWarnings').value = '0';
+            } else {
+                const leader = leadersData.find(l => l.name === leaderName);
+                if (leader) {
+                    document.getElementById('leaderName').value = leader.name;
+                    document.getElementById('leaderOrg').value = leader.organization;
+                    document.getElementById('leaderDate').value = leader.date;
+                    document.getElementById('leaderWarnings').value = leader.warnings;
+                }
+            }
+            
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        function saveLeaderData() {
+            const newName = document.getElementById('leaderName').value;
+            const newOrg = document.getElementById('leaderOrg').value;
+            const newDate = document.getElementById('leaderDate').value;
+            const newWarnings = parseInt(document.getElementById('leaderWarnings').value);
+            
+            if (!newName || !newOrg || !newDate) {
+                alert('Пожалуйста, заполните все поля!');
+                return;
+            }
+            
+            if (isNewLeader) {
+                // Добавление нового лидера
+                leadersData.push({
+                    name: newName,
+                    organization: newOrg,
+                    date: newDate,
+                    warnings: newWarnings
+                });
+            } else {
+                // Обновление существующего лидера
+                const leaderIndex = leadersData.findIndex(l => l.name === currentEditingLeader);
+                if (leaderIndex !== -1) {
+                    leadersData[leaderIndex] = {
+                        name: newName,
+                        organization: newOrg,
+                        date: newDate,
+                        warnings: newWarnings
+                    };
+                }
+            }
+            
+            // Сохраняем изменения в localStorage и перерисовываем таблицу
+            saveLeadersToStorage();
+            renderLeadersTable();
+            
+            closeEditModal();
+            alert(isNewLeader ? `Лидер "${newName}" успешно добавлен!` : `Данные лидера "${newName}" успешно обновлены!`);
+        }
+
+        function deleteLeader(leaderName) {
+            if (confirm(`Вы уверены, что хотите удалить лидера "${leaderName}"?`)) {
+                leadersData = leadersData.filter(l => l.name !== leaderName);
+                saveLeadersToStorage();
+                renderLeadersTable();
+                alert(`Лидер "${leaderName}" успешно удален!`);
+            }
+        }
+
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) {
+                closeEditModal();
+            }
+        });
+
+        // Загружаем данные при загрузке страницы
+        document.addEventListener('DOMContentLoaded', loadLeadersData);
+    </script>
+</body>
+  </html>
